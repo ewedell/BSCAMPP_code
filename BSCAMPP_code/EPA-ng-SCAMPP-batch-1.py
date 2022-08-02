@@ -261,7 +261,7 @@ def parseArgs():
                         help="Path for query and reference sequence alignment in fasta format", required=True, default=None)
 
     parser.add_argument("-o", "--output", type=str,
-                        help="Output file name", required=False, default="EPA-ng-BXR")
+                        help="Output file name", required=False, default="EPA-ng-BSCAMPP")
     
     parser.add_argument("-m", "--model", type=str,
                         help="Model used for edge distances",
