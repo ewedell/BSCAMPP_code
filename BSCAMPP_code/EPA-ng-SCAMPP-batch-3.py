@@ -459,7 +459,7 @@ def main(args):
     json.dump(jplace, output, sort_keys=True , indent=4)
     output.close()
     print ('{} seconds building jplace'.format(time.perf_counter() - t0))
-    #shutil.rmtree("tmp{}".format(run))
+    shutil.rmtree("tmp{}".format(run))
     
 
 
