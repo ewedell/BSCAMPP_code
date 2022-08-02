@@ -60,9 +60,10 @@ int main( int argc, char **argv ){
     // read in the reference sequences second
     double smallest_total_hamming[count2];
     int best_tree_index[count2];
-    for (int c=0; c<count2; c++)
+    for (int c=0; c<count2; c++) {
         smallest_total_hamming[c] = 999999999999999;
         best_tree_index[c] = 0;
+    }
 
     std::cout << argv[2] << std::endl;
     int subtree_size = std::stoi(argv[2]);
