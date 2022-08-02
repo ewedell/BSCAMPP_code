@@ -1,5 +1,5 @@
 '''
-This version uses a new technique for voting and ensuring trees contain all of the query sequences votes!
+This version uses a new technique for voting that ensures an assigned subtree for a query sequence contains all of the query sequence's votes!
 '''
 
 import sys
