@@ -5,6 +5,12 @@ This is based on the code from EPA-ng-SCAMPP available at https://github.com/chr
 
 There are three versions of EPA-ng-BSCAMPP here appended with -1,-2,-3 that were all tested. 
 
+# REQUIREMENTS
+
+Python3, TreeSwift. 
+
+# USAGE
+
 Usage for all three versions is as follows ->
 
 usage: EPA-ng-SCAMPP-batch-2.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
