@@ -3,7 +3,9 @@ New Code for EPA-ng-BSCAMPP
 
 This is based on the code from EPA-ng-SCAMPP available at https://github.com/chry04/PLUSplacer. 
 
-There are three versions of EPA-ng-BSCAMPP here appended with -1,-2,-3 that were all tested. 
+There are three tested versions of EPA-ng-BSCAMPP, coded in EPA-ng-SCAMPP-batch-1, EPA-ng-SCAMPP-batch-2, and EPA-ng-SCAMPP-batch-3. 
+
+Please use EPA-ng-SCAMPP-batch-2 for best results. It is also recommended that this be used with subtrees of size 2000 and with 5 or 10 votes based on current best results (especially if sequences are fragmentary).
 
 # REQUIREMENTS
 
