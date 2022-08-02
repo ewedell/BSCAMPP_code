@@ -58,6 +58,14 @@ def main(args):
     
     tmp_output = "tmp{}/".format(run) + "/closest.txt"
     
+    if q_aln == "":
+        q_aln = "tmp{}/".format(run) + "qaln.fa"
+        f = open(q_aln, "w")
+        for label, seq in q_dict.items():
+            f.write(">"+label+"\n")
+            f.write(seq+"\n")
+        f.close()
+    
     if fragment_flag == True:
         os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
     else:
