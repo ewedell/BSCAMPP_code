@@ -13,7 +13,7 @@ Python3, TreeSwift.
 
 Usage for all three versions is as follows ->
 
-usage: EPA-ng-SCAMPP-batch-2.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
+usage: EPA-ng-SCAMPP-batch-#.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
                                 [-o OUTPUT] [-m MODEL] [-b SUBTREESIZE]
                                 [-V VOTES] [-s SUBTREETYPE] [-n TMPFILENBR]
                                 [-q QALIGNMENT] [-f FRAGMENTFLAG] [-v]
