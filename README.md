@@ -1,5 +1,5 @@
 # BSCAMPP_code
-###New Code for EPA-ng-BSCAMPP
+### New Code for EPA-ng-BSCAMPP
 
 This is based on the code from EPA-ng-SCAMPP available at https://github.com/chry04/PLUSplacer. 
 
@@ -27,7 +27,7 @@ usage: EPA-ng-SCAMPP-batch-#.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
                                 [-o OUTPUT] [-m MODEL] [-b SUBTREESIZE]
                                 [-V VOTES] [-s SUBTREETYPE] [-n TMPFILENBR]
                                 [-q QALIGNMENT] [-f FRAGMENTFLAG] [-v]
-''
+"
 optional arguments:
   -h, --help            show this help message and exit
   -i INFO, --info INFO  Path to model parameters
@@ -56,4 +56,4 @@ optional arguments:
   -f FRAGMENTFLAG, --fragmentflag FRAGMENTFLAG
                         boolean, True if queries contain fragments
   -v, --version         show the version number and exit
-''
+"
