@@ -65,6 +65,13 @@ def main(args):
             f.write(">"+label+"\n")
             f.write(seq+"\n")
         f.close()
+        
+        aln = "tmp{}/".format(run) + "aln.fa"
+        f = open(aln, "w")
+        for label, seq in ref_dict.items():
+            f.write(">"+label+"\n")
+            f.write(seq+"\n")
+        f.close()
     
     if fragment_flag == True:
         os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
