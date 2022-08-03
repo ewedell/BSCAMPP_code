@@ -15,13 +15,19 @@ Python3, TreeSwift.
 
 # USAGE
 
-Usage for all three versions is as follows ->
+To get started there are testing files available in the testing folder. Simply enter the BSCAMPP_code directory and use the command as follows:
+
+python3 EPA-ng-SCAMPP-batch-2.py -i ./testing/aln_dna.fa.raxml.bestModel -t ./testing/backbone.tree -d ./ -a ./testing/aln_dna.fa -b 100
+
+Versions 1 and 3 can also be used with the above command. The jplace file should appear in the BSCAMPP_code directory. 
+
+A more comprehensive usage for all three versions is as follows ->
 
 usage: EPA-ng-SCAMPP-batch-#.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
                                 [-o OUTPUT] [-m MODEL] [-b SUBTREESIZE]
                                 [-V VOTES] [-s SUBTREETYPE] [-n TMPFILENBR]
                                 [-q QALIGNMENT] [-f FRAGMENTFLAG] [-v]
-
+''
 optional arguments:
   -h, --help            show this help message and exit
   -i INFO, --info INFO  Path to model parameters
@@ -50,3 +56,4 @@ optional arguments:
   -f FRAGMENTFLAG, --fragmentflag FRAGMENTFLAG
                         boolean, True if queries contain fragments
   -v, --version         show the version number and exit
+''
