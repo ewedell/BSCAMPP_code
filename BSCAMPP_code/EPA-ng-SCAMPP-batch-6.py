@@ -1,5 +1,7 @@
 '''
-This version uses a new technique for voting and ensuring trees contain all of the query sequences votes!
+This version modifies version 5, by reassigning queries to subtree based on minimizing the topolocial tree distance from the nearest leaf by 
+Hamming distance in the full tree to the seed sequence from the subtree. If the nearest leaf is not present in the subtree, it is considered 
+to have Hamming distance of infinity.
 '''
 
 import sys
