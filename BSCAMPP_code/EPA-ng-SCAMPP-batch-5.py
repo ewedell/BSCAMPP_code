@@ -1,5 +1,6 @@
 '''
-This version uses a new technique for voting and ensuring trees contain all of the query sequences votes!
+This version modifies version 4-emw by adjusting the way subtrees are selected. It will now only require that the top voted leaf (by Hamming distance) 
+included in the subtree, (rather than all votes being required in the subtree). 
 '''
 
 import sys
