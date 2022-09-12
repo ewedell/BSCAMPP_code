@@ -1,5 +1,7 @@
 '''
 This version uses a new technique for voting and ensuring trees contain all of the query sequences votes!
+Updated from version 3, by reassigning the query sequences to the subtree that minimizes the sum of
+the Hamming distances of the v leaves in the subtree with smallest Hamming distance to the query sequence
 '''
 
 import sys
