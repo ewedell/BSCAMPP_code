@@ -23,7 +23,7 @@ Simply cd into the BSCAMPP_code directory and use the command as follows:
 
 The output jplace file should appear in the BSCAMPP_code directory. 
 
-A more comprehensive usage for all three versions is as follows:
+A more comprehensive usage is as follows:
 
 >usage: EPA-ng-BSCAMPP.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
 >                                [-o OUTPUT] [-m MODEL] [-b SUBTREESIZE]
