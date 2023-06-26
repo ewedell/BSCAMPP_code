@@ -30,7 +30,7 @@ A more comprehensive usage is as follows:
 >                                [-V VOTES] [-s SUBTREETYPE] [-n TMPFILENBR]
 >                                [-q QALIGNMENT] [-f FRAGMENTFLAG] [-v]
 >
->optional arguments: 
+>arguments: 
 >> - -h, --help            show this help message and exit
 >> - -i INFO, --info INFO  Path to model parameters
 >> - -t TREE, --tree TREE  Path to reference tree with estimated branch lengths
