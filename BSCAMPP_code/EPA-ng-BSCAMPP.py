@@ -38,21 +38,6 @@ def main(args):
     leaf_dict = tree.label_to_node(selection='leaves')
     print ('{} seconds loading tree'.format(time.perf_counter() - t0))
 
-    if q_aln != "":
-        ref_dict = utils.read_data(aln)
-        q_dict = utils.read_data(q_aln)
-    else:
-        aln_dict = utils.read_data(aln)
-        ref_dict, q_dict = utils.seperate(aln_dict, leaf_dict)
-        
-        q_aln = "tmp{}/".format(run) + "qaln.fa"
-        write_fasta(q_aln, q_dict)       
-        
-        aln = "tmp{}/".format(run) + "aln.fa"
-        write_fasta(aln, ref_dict)        
-        
-    print ('{} seconds loading alignment'.format(time.perf_counter() - t0))
-
     try:
         os.mkdir("tmp{}".format(run))
     except OSError as error:
@@ -62,23 +47,38 @@ def main(args):
     except OSError as error:
         pass
 
+    if q_aln != "":
+        ref_dict = utils.read_data(aln)
+        q_dict = utils.read_data(q_aln)
+    else:
+        aln_dict = utils.read_data(aln)
+        ref_dict, q_dict = utils.seperate(aln_dict, leaf_dict)
+
+        q_aln = "tmp{}/".format(run) + "qaln.fa"
+        write_fasta(q_aln, q_dict)
+
+        aln = "tmp{}/".format(run) + "aln.fa"
+        write_fasta(aln, ref_dict)
+
+    print ('{} seconds loading alignment'.format(time.perf_counter() - t0))
+
     query_votes_dict = dict()
     query_top_vote_dict = dict()
-    
+
     tmp_output = "tmp{}/".format(run) + "/closest.txt"
-    
-    
+
+
 
     if fragment_flag == True:
         os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
-    else:    
+    else:
         os.system("./hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
     print ('{} seconds finding closest leaves'.format(time.perf_counter() - t0))
     #for name, seq in q_dict.items():
     #    y = utils.find_closest_hamming(seq, ref_dict, 5, fragment_flag)
     #    print ('{} Closest sister taxa found: {}'.format(name, y[0]))
     #    print ('{} seconds new finding closest leaf'.format(time.perf_counter() - t0))
-   
+
     f = open(tmp_output)
     for line in f:
         line = line.strip()
