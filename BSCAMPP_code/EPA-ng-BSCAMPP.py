@@ -316,7 +316,7 @@ def main(args):
     output.close()
     print ('{} seconds building jplace'.format(time.perf_counter() - t0))
     print ('Final number of subtrees used:', final_subtree_count)
-    #shutil.rmtree("tmp{}".format(run))
+    shutil.rmtree("tmp{}".format(run))
     
 
 def write_fasta(aln, aln_dict, aligned=True):
