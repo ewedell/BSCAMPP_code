@@ -28,6 +28,7 @@ def main(args):
     q_aln = args.qalignment
     model = args.model
     info = args.info
+    nbr_closest = args.votes
 
     # output path, ref, query, backbone tree, info
     t0 = time.perf_counter()
@@ -43,6 +44,13 @@ def main(args):
     else:
         aln_dict = utils.read_data(aln)
         ref_dict, q_dict = utils.seperate(aln_dict, leaf_dict)
+        
+        q_aln = "tmp{}/".format(run) + "qaln.fa"
+        write_fasta(q_aln, q_dict)       
+        
+        aln = "tmp{}/".format(run) + "aln.fa"
+        write_fasta(aln, ref_dict)        
+        
     print ('{} seconds loading alignment'.format(time.perf_counter() - t0))
 
     try:
@@ -55,12 +63,16 @@ def main(args):
         pass
 
     query_votes_dict = dict()
-    query_decomp_dict = dict()
+    query_top_vote_dict = dict()
     
     tmp_output = "tmp{}/".format(run) + "/closest.txt"
-    nbr_closest = 10
     
-    os.system("./hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
+    
+
+    if fragment_flag == True:
+        os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
+    else:    
+        os.system("./hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
     print ('{} seconds finding closest leaves'.format(time.perf_counter() - t0))
     #for name, seq in q_dict.items():
     #    y = utils.find_closest_hamming(seq, ref_dict, 5, fragment_flag)
@@ -68,16 +80,26 @@ def main(args):
     #    print ('{} seconds new finding closest leaf'.format(time.perf_counter() - t0))
    
     f = open(tmp_output)
-    for line in f: 
+    for line in f:
         line = line.strip()
         y = line.split(',')
         name = y.pop(0)
+
         #print(name, y)
         for idx, taxon in enumerate(y):
-            y[idx] = taxon.split(':')[0]
+
+            leaf, hamming = taxon.split(':')
+            y[idx] = (leaf, int(hamming))
+
+        y = sorted(y, key=lambda x: x[1])
+        #print(y)
+        for idx, taxon in enumerate(y):
+            y[idx] = taxon[0]
+
         query_votes_dict[name] = y
+        query_top_vote_dict[name] = y[0]
     f.close()
-    
+
     print ('{} seconds processing closest leaves'.format(time.perf_counter() - t0))
 
     lf_votes = Counter()
@@ -93,40 +115,25 @@ def main(args):
                 leaf_queries[leaf] = {(name,top_vote)}
             else:
                 leaf_queries[leaf].add((name,top_vote))
+
     print (len(leaf_queries))
     subtree_dict = dict()
+    subtree_leaf_label_dict = dict()
     nbr_of_queries = len(q_dict)
     print (len(query_votes_dict), nbr_of_queries)
     most_common_index = 0
     
     while len(query_votes_dict) > 0:
-        #print (lf_votes.most_common(1))
-        if most_common_index > 10:
-            node_label = (list(query_votes_dict.items()))[0][1][0]
-        else:
-            (node_label, node_votes) = lf_votes.most_common(most_common_index+1)[most_common_index]
+        (seed_label, node_votes) = lf_votes.most_common(most_common_index+1)[most_common_index]
         
-        # build a set of queries whose top votes were this label ->
-        best_subtree_queries = set()
-        for query, top_vote in leaf_queries[node_label]:
-            if top_vote:
-                best_subtree_queries.add(query)
-        
-        
-        #if node_label not in leaf_dict:
-        #    print (node_label)
-        #    lf_votes.subtract(node_label)
-        #    continue
-        node_y = leaf_dict[node_label]
+        node_y = leaf_dict[seed_label]
         labels = utils.subtree_nodes_with_edge_length(tree, node_y, n)
         subtree = tree.extract_tree_with(labels)
         label_set = set(labels)
 
         queries_by_subtree = set()
         subtree_query_set = set()
-        subtree_query_set.update(best_subtree_queries)
-        #print(best_subtree_queries)
-        
+
         #gather any other queries that can be used with this subtree
         for label in labels:
             leaf_queries_remove_set = set()
@@ -134,42 +141,35 @@ def main(args):
                     
                 for leaf_query, top_vote in leaf_queries[label]:
                 
-                    all_votes_in_tree = True
                     if leaf_query not in query_votes_dict:
                         leaf_queries_remove_set.add((leaf_query, top_vote))
                         continue
                         
-                    for voted_label in query_votes_dict[leaf_query]:
-                       if voted_label not in label_set:
-                           all_votes_in_tree = False
-                           break
-                    if all_votes_in_tree:
+                    if top_vote:
                         subtree_query_set.add(leaf_query)
+                        leaf_queries_remove_set.add((leaf_query, top_vote))
                     
                 leaf_queries[label].difference_update(leaf_queries_remove_set)
-        #print(subtree_query_set)
-        #print(queries_by_subtree)
         queries_by_subtree.update(subtree_query_set)
-        #print(queries_by_subtree)         
 
         if len(queries_by_subtree)> 0:
-            subtree_dict[subtree] = queries_by_subtree
-            print ("{} queries in subtree".format(len(queries_by_subtree)))
+            subtree_dict[subtree] = (seed_label, queries_by_subtree)
+            subtree_leaf_label_dict[subtree] = subtree.label_to_node(selection='leaves')
+            #print ("{} queries in subtree".format(len(queries_by_subtree)))
         votes_b4 = len(list(lf_votes.elements()))
-        #print("queries: {}".format(queries_by_subtree))
+        
         for query in queries_by_subtree:
             if query in query_votes_dict:
                 lf_votes.subtract(query_votes_dict[query])
                 query_votes_dict.pop(query)
         if len(queries_by_subtree)> 0:        
-            print ("votes before: {}, votes after: {}".format(votes_b4, len(list(lf_votes.elements()))))
+            #print ("votes before: {}, votes after: {}".format(votes_b4, len(list(lf_votes.elements()))))
             print ("queries left: {}".format(len(query_votes_dict)))
         if len(queries_by_subtree) == 0:
-           most_common_index += 1
+            most_common_index += 1
         else:
-           most_common_index = 0;
-                
-
+            most_common_index = 0;
+            
     jplace = dict()
     placements = []
 
@@ -179,8 +179,38 @@ def main(args):
 
     placed_query_list = []
     
-    for subtree, query_list in subtree_dict.items():
+    new_subtree_dict = dict()
+    for query, closest_label in query_top_vote_dict.items():
+   
+        best_subtree = None
+        best_distance = 99999999999999999
+        for subtree, value in subtree_dict.items():
+            leaf_label_dict = subtree_leaf_label_dict[subtree]
+            seed_label, _ = value
+            if closest_label in leaf_label_dict:
+                distance = subtree.distance_between(leaf_label_dict[closest_label], leaf_label_dict[seed_label])
+                if distance < best_distance:
+                   best_subtree = subtree
+                   best_distance = distance
+        if best_subtree in new_subtree_dict:
+            new_subtree_dict[best_subtree].append(query)
+        else:
+            new_subtree_dict[best_subtree] = [query]
+        
+            
 
+    print ('{} seconds assigning subtrees'.format(time.perf_counter() - t0))
+    final_subtree_count = 0
+    
+    tmp_output = "tmp{}/query_subtree_dict".format(run)
+    
+    for subtree, query_list in new_subtree_dict.items():
+
+        if len(query_list) == 0:
+            continue
+
+        final_subtree_count += 1
+        
         tmp_tree = "tmp{}/tree".format(run)
         tmp_aln = "tmp{}/aln".format(run) + ".fa"
         tmp_qaln = "tmp{}/qaln".format(run) + "q.fa"
@@ -191,19 +221,14 @@ def main(args):
         except OSError as error:
             pass
 
-        f = open(tmp_aln, "w")
-        fq = open(tmp_qaln, "w")
-        for name in query_list:
-            fq.write(">"+name+"\n")
-            fq.write(q_dict[name]+"\n")
         tmp_leaf_dict = subtree.label_to_node(selection='leaves')
-        for label, node in tmp_leaf_dict.items():
-            if label != '':
-                f.write(">"+label+"\n")
-                f.write(ref_dict[label]+"\n")
-
-        f.close()
-        fq.close()
+        if '' in tmp_leaf_dict:
+            del tmp_leaf_dict['']
+        tmp_ref_dict = {label : ref_dict[label] for label in tmp_leaf_dict.keys()}
+        write_fasta(tmp_aln, tmp_ref_dict)
+        
+        tmp_q_dict = {name : q_dict[name] for name in query_list}
+        write_fasta(tmp_qaln, tmp_q_dict)
 
         #print ('{} seconds building alignment'.format(time.perf_counter() - t0))
 
@@ -220,7 +245,7 @@ def main(args):
         place_file = open(tmp_output, 'r')
         place_json = json.load(place_file)
         
-
+        
         if len(place_json["placements"]) > 0:
 
             added_tree, edge_dict = utils.read_tree_newick_edge_tokens(place_json["tree"])
@@ -285,17 +310,26 @@ def main(args):
     jplace["fields"] = ["distal_length", "edge_num", "like_weight_ratio", \
             "likelihood", "pendant_length"]
 
-    fragment = ""
-    if fragment_flag == True:
-        fragment = "-f"
 
     output = open('{}/{}.jplace'.format(output,outFile), 'w')
     json.dump(jplace, output, sort_keys=True , indent=4)
     output.close()
     print ('{} seconds building jplace'.format(time.perf_counter() - t0))
+    print ('Final number of subtrees used:', final_subtree_count)
     #shutil.rmtree("tmp{}".format(run))
+    
 
-
+def write_fasta(aln, aln_dict, aligned=True):
+        
+        f = open(aln, "w")
+        for label, seq in aln_dict.items():
+            if label != '':
+                f.write(">"+label+"\n")
+                if aligned:
+                    f.write(seq+"\n")
+                else:
+                    f.write(seq.replace('-','')+"\n")
+        f.close()
 
 def parseArgs():
     parser = argparse.ArgumentParser()
@@ -323,6 +357,10 @@ def parseArgs():
                         help="Integer size of the subtree",
                         required=False, default=2000)
     
+    parser.add_argument("-V", "--votes", type=int,
+                        help="Integer number of votes per query sequence",
+                        required=False, default=5)
+    
     parser.add_argument("-s", "--subtreetype", type=str,
                         help="d (default) for edge weighted distances, n for node distances, h for hamming distances",
                         required=False, default="b")
@@ -335,13 +373,24 @@ def parseArgs():
                         help="Path to query sequence alignment in fasta format (ref alignment separate)",
                         required=False, default="")
     
-    parser.add_argument("-f", "--fragmentflag", type=bool,
+    parser.add_argument("-f", "--fragmentflag", type=str2bool,
                         help="boolean, True if queries contain fragments",
                         required=False, default=True)
 
     parser.add_argument("-v", "--version", action="version", version="1.0.0", help="show the version number and exit")
                        
     return parser.parse_args()
+
+
+def str2bool(b):
+    if isinstance(b, bool):
+       return b
+    if b.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif b.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')        
 
 if __name__ == "__main__":
     main(parseArgs())
