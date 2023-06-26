@@ -21,13 +21,13 @@ To get started there is a test tree and MSA available in the testing folder (ori
 
 Simply cd into the BSCAMPP_code directory and use the command as follows:
 
->python3 EPA-ng-SCAMPP-batch-2.py -i ./testing/aln_dna.fa.raxml.bestModel -t ./testing/backbone.tree -d ./ -a ./testing/aln_dna.fa -b 100
+>python3 EPA-ng-BSCAMPP.py -i ./testing/aln_dna.fa.raxml.bestModel -t ./testing/backbone.tree -d ./ -a ./testing/aln_dna.fa -b 100
 
-Versions 1 and 3 can also be used with the above command. The output jplace file should appear in the BSCAMPP_code directory. 
+The output jplace file should appear in the BSCAMPP_code directory. 
 
 A more comprehensive usage for all three versions is as follows:
 
->usage: EPA-ng-SCAMPP-batch-#.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
+>usage: EPA-ng-BSCAMPP.py [-h] -i INFO -t TREE -d OUTDIR -a ALIGNMENT
 >                                [-o OUTPUT] [-m MODEL] [-b SUBTREESIZE]
 >                                [-V VOTES] [-s SUBTREETYPE] [-n TMPFILENBR]
 >                                [-q QALIGNMENT] [-f FRAGMENTFLAG] [-v]
