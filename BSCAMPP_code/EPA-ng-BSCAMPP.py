@@ -23,7 +23,7 @@ def main(args):
     aln = args.alignment
     n = args.subtreesize
     run = args.tmpfilenbr
-    subtree_flag = args.subtreetype
+    similarity_flag = args.similarityflag
     fragment_flag = args.fragmentflag
     q_aln = args.qalignment
     model = args.model
@@ -67,37 +67,42 @@ def main(args):
 
     tmp_output = "tmp{}/".format(run) + "/closest.txt"
 
-
-
-    if fragment_flag == True:
-        os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
+    if similarity_flag == True:
+        os.system("./homology {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
     else:
-        os.system("./hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
-    print ('{} seconds finding closest leaves'.format(time.perf_counter() - t0))
-    #for name, seq in q_dict.items():
-    #    y = utils.find_closest_hamming(seq, ref_dict, 5, fragment_flag)
-    #    print ('{} Closest sister taxa found: {}'.format(name, y[0]))
-    #    print ('{} seconds new finding closest leaf'.format(time.perf_counter() - t0))
+        if fragment_flag == False:
+            os.system("./hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
+        else: 
+            os.system("./fragment_hamming {} {} {} {} {} {}".format(aln, len(ref_dict), q_aln, len(q_dict), tmp_output, nbr_closest))
 
+    print ('{} seconds finding closest leaves'.format(time.perf_counter() - t0))
+    
+    unusable_queries = set()
     f = open(tmp_output)
     for line in f:
         line = line.strip()
         y = line.split(',')
         name = y.pop(0)
 
-        #print(name, y)
         for idx, taxon in enumerate(y):
 
             leaf, hamming = taxon.split(':')
             y[idx] = (leaf, int(hamming))
 
         y = sorted(y, key=lambda x: x[1])
-        #print(y)
         for idx, taxon in enumerate(y):
             y[idx] = taxon[0]
 
-        query_votes_dict[name] = y
-        query_top_vote_dict[name] = y[0]
+        if name.find(':') >= 0:
+            name_list = name.split(":")
+            name = name_list[0]
+            ungapped_length = name_list[1]
+            if y[0] == ungapped_length:
+                print ('Error with sequence', name, ': No homologous sites found in the reference sequences. Query removed before placement.')
+                unusable_queries.add(name)
+        if name not in unusable_queries:
+            query_votes_dict[name] = y
+            query_top_vote_dict[name] = y[0]
     f.close()
 
     print ('{} seconds processing closest leaves'.format(time.perf_counter() - t0))
@@ -116,11 +121,8 @@ def main(args):
             else:
                 leaf_queries[leaf].add((name,top_vote))
 
-    print (len(leaf_queries))
     subtree_dict = dict()
     subtree_leaf_label_dict = dict()
-    nbr_of_queries = len(q_dict)
-    print (len(query_votes_dict), nbr_of_queries)
     most_common_index = 0
     
     while len(query_votes_dict) > 0:
@@ -155,7 +157,7 @@ def main(args):
         if len(queries_by_subtree)> 0:
             subtree_dict[subtree] = (seed_label, queries_by_subtree)
             subtree_leaf_label_dict[subtree] = subtree.label_to_node(selection='leaves')
-            #print ("{} queries in subtree".format(len(queries_by_subtree)))
+
         votes_b4 = len(list(lf_votes.elements()))
         
         for query in queries_by_subtree:
@@ -163,7 +165,6 @@ def main(args):
                 lf_votes.subtract(query_votes_dict[query])
                 query_votes_dict.pop(query)
         if len(queries_by_subtree)> 0:        
-            #print ("votes before: {}, votes after: {}".format(votes_b4, len(list(lf_votes.elements()))))
             print ("queries left: {}".format(len(query_votes_dict)))
         if len(queries_by_subtree) == 0:
             most_common_index += 1
@@ -179,6 +180,8 @@ def main(args):
 
     placed_query_list = []
     
+    # reassign queries to the subtree minimizing total edge length 
+    # from the query's top vote to the subtree's seedleaf
     new_subtree_dict = dict()
     for query, closest_label in query_top_vote_dict.items():
    
@@ -257,10 +260,6 @@ def main(args):
                     edge_num = tmp_place["p"][i][0]
                     edge_distal = tmp_place["p"][i][3]
 
-                    #print(edge_num)
-                    #print(edge_distal)
-                    #print ('{} loading jplace'.format(time.perf_counter() - t0))
-
                     right_n = edge_dict[str(edge_num)]
                     left_n = right_n.get_parent()
 
@@ -286,24 +285,16 @@ def main(args):
 
                     tmp_place["p"][i][0] = 0
 
-                    #print (tree)
                     label = target_edge.get_label()
-                    
-                    #print (label)
+
                     [taxon, target_edge_nbr] = label.split('%%',1)
                     tmp_place["p"][i][0] = target_edge.get_edge_length()+length
                     tmp_place["p"][i][1] = int(target_edge_nbr)
-                    
-                    #print(target_edge.get_edge_length()+length)
-
-                    #print(int(target_edge_nbr))
 
                 placements.append(tmp_place.copy())
 
         place_file.close()
     
-    print(len(placed_query_list))
-
     jplace["placements"] = placements
     jplace["metadata"] = {"invocation": " ".join(sys.argv)}
     jplace["version"] = 3
@@ -316,7 +307,7 @@ def main(args):
     output.close()
     print ('{} seconds building jplace'.format(time.perf_counter() - t0))
     print ('Final number of subtrees used:', final_subtree_count)
-    shutil.rmtree("tmp{}".format(run))
+#    shutil.rmtree("tmp{}".format(run))
     
 
 def write_fasta(aln, aln_dict, aligned=True):
@@ -347,8 +338,8 @@ def parseArgs():
                         help="Path for query and reference sequence alignment in fasta format", required=True, default=None)
 
     parser.add_argument("-o", "--output", type=str,
-                        help="Output file name", required=False, default="EPA-ng-BXR")
-    
+                        help="Output file name", required=False, default="EPA-ng-BSCAMPP")
+
     parser.add_argument("-m", "--model", type=str,
                         help="Model used for edge distances",
                         required=False, default="GTR")
@@ -361,9 +352,9 @@ def parseArgs():
                         help="Integer number of votes per query sequence",
                         required=False, default=5)
     
-    parser.add_argument("-s", "--subtreetype", type=str,
-                        help="d (default) for edge weighted distances, n for node distances, h for hamming distances",
-                        required=False, default="b")
+    parser.add_argument("-s", "--similarityflag", type=str2bool,
+                        help="boolean, False if maximizing sequence similarity instead of simple Hamming distance (ignoring gap sites in the query)",
+                        required=False, default=True)
     
     parser.add_argument("-n","--tmpfilenbr", type=int,
                         help="tmp file number",
@@ -376,6 +367,7 @@ def parseArgs():
     parser.add_argument("-f", "--fragmentflag", type=str2bool,
                         help="boolean, True if queries contain fragments",
                         required=False, default=True)
+                   
 
     parser.add_argument("-v", "--version", action="version", version="1.0.0", help="show the version number and exit")
                        

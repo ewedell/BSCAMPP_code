@@ -6,8 +6,8 @@ find_package(OpenMP)
 
 add_executable (hamming new_hamming.cpp)
 add_executable (fragment_hamming fragment_hamming.cpp)
-add_executable (fragment_tree_hamming fragment_tree_hamming.cpp)
+add_executable (homology homology.cpp)
 
 target_link_libraries(fragment_hamming OpenMP::OpenMP_CXX)
 target_link_libraries(hamming OpenMP::OpenMP_CXX)
-target_link_libraries(fragment_tree_hamming OpenMP::OpenMP_CXX)
+target_link_libraries(homology OpenMP::OpenMP_CXX)

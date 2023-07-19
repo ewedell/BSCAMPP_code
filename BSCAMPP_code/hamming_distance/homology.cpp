@@ -9,12 +9,14 @@ int main( int argc, char **argv ){
         return -1;
     }
  
+ 
+    // read in the reference sequences first
     std::ifstream input_q(argv[1]);
     if(!input_q.good()){
         std::cerr << "Error opening '"<<argv[1]<<"'. Bailing out." << std::endl;
         return -1;
     }
-    std::cout << argv[2] << std::endl;
+
     std::string name_arr[std::stoi(argv[2])];
     std::string seq_arr[std::stoi(argv[2])];
     std::string line, name, content;
@@ -23,11 +25,11 @@ int main( int argc, char **argv ){
     while( std::getline( input_q, line ).good() ){
         if( line.empty() || line[0] == '>' ){ // Identifier marker
             if( !name.empty() ){ // Print out what we read from the last entry
-                //std::cout << name << " : " << content << std::endl;
+
                 name_arr[count1] = name.c_str();
                 seq_arr[count1] = content.c_str();
                 name.clear();
-                //std::cout << count1<< " : " << name_arr[count1] <<std::endl;
+
                 count1++;
             }
             if( !line.empty() ){
@@ -42,10 +44,8 @@ int main( int argc, char **argv ){
                 content += line;
             }
         }
-
     }
     
-    std::cout << "here" << std::endl;
     
     if( !name.empty() ){ // Print out what we read from the last entry
         //std::cout << name << " : " << content << std::endl;        
@@ -54,13 +54,13 @@ int main( int argc, char **argv ){
         count1++;
     }
   
-  
+    // read in query sequences second
     std::ifstream input(argv[3]);
     if(!input.good()){
         std::cerr << "Error opening '"<<argv[3]<<"'. Bailing out." << std::endl;
         return -1;
     }
-    std::cout << argv[4] << std::endl;
+
     std::string q_name_arr[std::stoi(argv[4])+3];
     std::string q_seq_arr[std::stoi(argv[4])+3];
     int count2 = 0;
@@ -102,50 +102,67 @@ int main( int argc, char **argv ){
 
     std::ofstream outFile(argv[5]);
 
+    // find n (size) closest reference sequences by Hamming distance to each query 
+    // print this to outfile with the one query per line followed by the n closest
+    // reference sequences separated by a comma, with their requisite Hamming
+    // distances separated with a semicolon.
+    
     #pragma omp parallel for 
     for (int c2=0; c2<count2; c2++){ //query seq array
     
         int size = std::stoi(argv[6]);
-        int best_hamming[size];
-        int best_index[size];
-        int furthest_index = 0;
+
+        int best_homolog[size];
+        int best_homolog_index[size];
+        int furthest_homolog_index = 0;
 
         for (int i=0; i<size; i++){
-            best_index[i] = 0;
-            best_hamming[i] = 999999999;
+            best_homolog_index[i] = 0;
+            best_homolog[i] = 999999999;
         }
-
+        
+        int q_len = q_seq_arr[c2].length();
+        int q_hom_idx_arr[q_len];
+        int hom_nbr = 0;
+        for (int i=0; i < q_len; i++) {
+            if (q_seq_arr[c2][i] != '-') {
+                q_hom_idx_arr[hom_nbr] = i;
+                hom_nbr++;
+            }
+        }
+        
         for (int c1=0; c1<count1 ; c1++) { //ref seq array
             int count = 0;
+            int non_hom_count = 0;
             int len = seq_arr[c1].length();
-            for(int i=0; i < len; i++) {
-                if(seq_arr[c1][i] != q_seq_arr[c2][i]) {
-                    count++;
-                    if (count > best_hamming[furthest_index]) {
+            for(int i=0; i < hom_nbr; i++) {
+                if(seq_arr[c1][q_hom_idx_arr[i]] != q_seq_arr[c2][q_hom_idx_arr[i]]) {
+                    non_hom_count++;
+                    if (non_hom_count > best_homolog[furthest_homolog_index]) {
                         break;
                     }
                 }
             }
             //std::cout << "here" << std::endl;
-            if (count <= best_hamming[furthest_index]) {
-                best_hamming[furthest_index] = count;
-                best_index[furthest_index] = c1;
-                int high_hamming = 0;
-                int high_index = 0;
+            if (non_hom_count <= best_homolog[furthest_homolog_index]) {
+                best_homolog[furthest_homolog_index] = non_hom_count;
+                best_homolog_index[furthest_homolog_index] = c1;
+                int high_homolog = 0;
+                int high_hom_index = 0;
                 for (int i=0; i<size; i++){
-                    if (best_hamming[i] > high_hamming){
-                        high_hamming = best_hamming[i];
-                        high_index = i;
+                    if (best_homolog[i] > high_homolog){
+                        high_homolog = best_homolog[i];
+                        high_hom_index = i;
                     }
-                furthest_index = high_index;
+                furthest_homolog_index = high_hom_index;
                 }
             }
         }
         #pragma omp critical
-        {
-            outFile << q_name_arr[c2];
+        {   
+            outFile << q_name_arr[c2] << ":" << hom_nbr;
             for (int i=0; i<size; i++){
-                outFile << "," << name_arr[best_index[i]] << ":" << best_hamming[i];
+                outFile << "," << name_arr[best_homolog_index[i]] << ":" << best_homolog[i];
             }
             outFile << std::endl;
         }

@@ -134,7 +134,7 @@ int main( int argc, char **argv ){
         
         for (int c1=0; c1<count1 ; c1++) { //ref seq array
             int count = 0;
-            int len = seq_arr[c1].length();
+            // int len = seq_arr[c1].length();
             for(int i=start_idx; i < end_idx+1; i++) {
                 if(seq_arr[c1][i] != q_seq_arr[c2][i]) {
                     count++;

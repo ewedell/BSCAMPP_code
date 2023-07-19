@@ -123,10 +123,7 @@ def set_hamming_dict(args):
     name, seq = dict_items
     ref, n, fragment_flag, y_dict = other_args
     
-    print(other_args)
     y_dict[name] = find_closest_hamming(seq, ref, n, fragment_flag)
-    #print ('{} Closest sister taxa found: {}'.format(name, y[0]))
-    #print ('{} seconds new finding closest leaf'.format(time.perf_counter() - t0))
 
 
 def find_closest_hamming(x, ref, n, fragment_flag):
@@ -148,10 +145,8 @@ def find_closest_hamming(x, ref, n, fragment_flag):
     closest = []
 
     counter = 0
-    #print (x)
     if fragment_flag == 'True':
         [si, ei] = set_fragment_indicies(x)
-        #print("[si = " , si, ", ei = ", ei, "]")
     else:
         [si, ei] = [0, len(x)]
     
@@ -184,7 +179,6 @@ def set_fragment_indicies(x):
     list of start index and end index with the first and last non gap character
     
     """
-    #print ("masking...")
     e = len(x)
     ei = e
     si = 0
@@ -359,8 +353,6 @@ def build_subtrees(sister_taxon_dict, leaf_dict, tree, nbr_subtrees, subtree_siz
 
         if idx == old_idx:
             continue
-        
-        print ("testing:",cluster_list[old_idx])
 
         for leaf in cluster_list[old_idx]:
             cluster_dict[leaf] = idx
@@ -369,7 +361,7 @@ def build_subtrees(sister_taxon_dict, leaf_dict, tree, nbr_subtrees, subtree_siz
         cluster_list.pop(old_idx)
 
         tree_building_taxa -= 1
-        print (l1, l2, length)
+
         best_leaf = cluster_list[idx][0]
         for leaf in cluster_list[idx]:
             best_leaf = centered_leaf(tree, cluster_list[idx])
@@ -377,8 +369,6 @@ def build_subtrees(sister_taxon_dict, leaf_dict, tree, nbr_subtrees, subtree_siz
         cluster_set = {*cluster_node_list}
         node_l3, _, length = find_closest_testing(leaf_dict[best_leaf], cluster_set, valid_leaves=sister_taxon_dict)
         heapq.heappush(queue, [length, best_leaf, node_l3.get_label()])
-
-    print (cluster_list)
 
     trees = []
     query_decomp_dict = []
@@ -393,7 +383,7 @@ def build_subtrees(sister_taxon_dict, leaf_dict, tree, nbr_subtrees, subtree_siz
         for leaf in cluster:
             query_list.extend(sister_taxon_dict[leaf])
         query_decomp_dict.append(query_list)
-    print (len(trees), query_decomp_dict)
+
     return trees, query_decomp_dict
 
 
@@ -594,7 +584,7 @@ def decompose_tree(a_tree,max_size):
     t1, t2, tmp_leaves = min_tree_extract_non_disjoint(a_tree, max_size, tmp_leaves)
     while len(tmp_leaves) > 0:
         tree_list.append(t2)
-        print (len(tmp_leaves))
+
         #t1, t2, tmp_leaves = min_tree_extract_disjoint(t1, max_size, tmp_leaves)
         t1, t2, tmp_leaves = min_tree_extract_non_disjoint(t1, max_size, tmp_leaves)
     tree_list.append(t2)
@@ -653,11 +643,11 @@ def centered_leaf(tree, cluster):
         tmp_label_dict = tmp_tree.label_to_node(selection='leaves')
         for leaf in cluster: 
             total = total_distance(tmp_tree, tmp_label_dict[leaf])
-            print (total)
+
             if total < min_distance:
                 min_distance = total
                 best_leaf = leaf
-        print ('best: ', best_leaf, min_distance)
+
     return best_leaf
 
 def max_distance(tree, node):
@@ -726,7 +716,7 @@ def newick_edge_tokens(tree):
         ``str``: Newick string of this ``Tree``
     '''
     label_list = tree.root.get_label().split('%%',1)
-    print (tree.root.get_label())
+
     if tree.root.edge_length is None:
         suffix = ';'
     elif isinstance(tree.root.edge_length,int):
@@ -734,9 +724,8 @@ def newick_edge_tokens(tree):
     elif isinstance(tree.root.edge_length,float) and tree.root.edge_length.is_integer():
         suffix = '%s:%d{%d};' % (str(label_list[0]), float(tree.root.edge_length), int(label_list[1]))
     else:
-        #print (tree.root.edge_length,int(label)
         suffix = '%s:%s{%d};' % (str(label_list[0]), str(tree.root.edge_length), int(label_list[1]))
-    print (suffix)
+
     if tree.is_rooted:
         return '[&R] %s%s' % (newick_edge_tokens_node(tree.root),suffix)
     else:
