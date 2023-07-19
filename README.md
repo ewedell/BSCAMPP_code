@@ -49,9 +49,9 @@ A more comprehensive usage is as follows:
                         Integer size of the subtree
 >> - -V VOTES, --votes VOTES
                         Integer number of votes per query sequence
->> - -s SUBTREETYPE, --subtreetype SUBTREETYPE
-                        d (default) for edge weighted distances, n for node
-                        distances, h for hamming distances
+>> - -s SIMILARITYFLAG, --similarityflag SIMILARITYFLAG
+                        boolean, False if maximizing sequence similarity instead
+                        of simple Hamming distance (ignoring gap sites in the query)
 >> - -n TMPFILENBR, --tmpfilenbr TMPFILENBR
                         tmp file number
 >> - -q QALIGNMENT, --qalignment QALIGNMENT
